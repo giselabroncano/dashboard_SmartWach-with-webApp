@@ -72,4 +72,8 @@ dependencies {
     debugImplementation(libs.ui.test.manifest)
     implementation("com.hivemq:hivemq-mqtt-client:1.3.0")
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
+    // Libreria MQTT Paho per Android
+    implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+    implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1")
+
 }

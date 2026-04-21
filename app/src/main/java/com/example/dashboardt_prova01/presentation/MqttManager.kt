@@ -17,7 +17,7 @@ class MqttManager( private val brokerIp: String) {
         client = Mqtt5Client.builder()
             .identifier("Watch-"+ UUID.randomUUID().toString())
             .serverHost(brokerIp)
-            .serverPort(1883)
+            .serverPort(1883) // 1883 (localhost)
             .buildAsync()
 
         // Restituisce TRUE se è connesso, altrimenti mi da errore

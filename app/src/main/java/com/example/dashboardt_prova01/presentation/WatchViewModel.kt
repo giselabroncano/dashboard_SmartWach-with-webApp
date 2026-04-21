@@ -6,7 +6,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
+import kotlin.math.pow
+import kotlin.math.sqrt
 
 class WatchViewModel(
     private val sensorManager: MySensorManager,
@@ -16,15 +17,6 @@ class WatchViewModel(
     // Inizializziamo lo stato con le variabili della classe dashboardState
     private val _uiState = MutableStateFlow(DashboardState())
     val uiState = _uiState.asStateFlow()
-
-//    init{
-//        // Connessione a MOSQUITTO appena l'app parte
-//        mqttManager.connect { successo->
-//            _uiState.update { it.copy(isMqttConnected = successo) }
-//        }
-//        // facciamo partire il "FLOW" dei dati
-//        avviaMonitoraggioBraccio()
-//    }
 
     fun startMonitoraggio(){
 
@@ -51,6 +43,14 @@ class WatchViewModel(
     }
 
     fun stopMonitoraggio(){
+
+        // invia subito il segnale di chiusura alla web App
+        if(_uiState.value.isMqttConnected){
+            mqttManager.publish("test/sensori/braccio", "OFF")
+        }
+
+    // Aggiorna lo stato interno della UI dell'orologio
+
         _uiState.update { it.copy(
             isMonitoringActive = false,
             isMqttConnected = false,
@@ -58,6 +58,9 @@ class WatchViewModel(
             ultimoMessaggioInviato = "Monitoraggio OFF",
             accX = 0f, accY = 0f, accZ = 0f // Pulizia dei numeri sulla dashboard
         ) }
+
+        // Scollega il broker
+        mqttManager.resetClient()
     }
 
     private fun avviaMonitoraggioBraccio(){
@@ -75,8 +78,26 @@ class WatchViewModel(
                     val x = coordinate[0]
                     val y = coordinate[1]
                     val z = coordinate[2]
-
                     val adesso = System.currentTimeMillis()
+
+                    // CALCOLIAMO LO STATO PER LO SMARTWATCH E IL "SIMBOLO" PER LA WEB APP
+
+                    val intensita = sqrt( x.pow(2) + y.pow(2) + z.pow(2)) // calcolo accelerazione
+                    val statoFermo = sqrt( 0 + y.pow(2) + z.pow(2))
+                    val simboloWeb: String
+                    val testSmartwatch: String
+
+                    if (intensita > 12f){
+                        testSmartwatch = "In movimento"
+                        simboloWeb = "CORSA"
+                    }else if (intensita > statoFermo) {
+                        testSmartwatch = "In movimento"
+                        simboloWeb = "SALUTO"
+                    }else{
+                        testSmartwatch = "Fermo"
+                        simboloWeb = "RIPOSO"
+                    }
+
 
                     // AGGIORNIAMO QUI LE VARIABILI
                     _uiState.update { statoAttuale ->
@@ -92,7 +113,7 @@ class WatchViewModel(
                             listaMovimenti = nuovaLista,
                             //Se il movimento X supera una soglia, cambiamo l'etichetta
 
-                            movementElevator = if (Math.abs(x) > 3f || Math.abs(y) > 3f || Math.abs(z) > 3f) {
+                            movementElevator = if (intensita > statoFermo ) { //|| Math.abs(y) > 3f || Math.abs(z) > 3f
                                 "In movimento"
                             } else {
                                 "Fermo"
@@ -104,27 +125,15 @@ class WatchViewModel(
 
                     // TRASMISSIONE
                     // se il broker è connesso, inviamo il dato
-                    if (_uiState.value.isMqttConnected && (adesso - ultimoInvio > 300 )) {
+                    if (_uiState.value.isMqttConnected && (adesso - ultimoInvio > 500 )) {
                         val topic = "test/sensori/braccio"
-                        val messaggioJson = """
-                       {
-                        "accX" : ${"%2f".format(x)},
-                        "accY" : ${"%2f".format(y)},
-                        "accZ" : ${"%2f".format(z)},
-                        "stato" : "${_uiState.value.movementElevator}"
-                       } 
-                        
-                    """.trimIndent()
+                        mqttManager.publish(topic, simboloWeb)
+                        ultimoInvio = adesso
 
-                        mqttManager.publish(topic, messaggioJson)
                         _uiState.update {
                             it.copy(
-                                ultimoMessaggioInviato = "Inviato: X=${
-                                    "%.1f".format(
-                                        x
-                                    )
-                                } Y=${"%.1f".format(y)}",
-                               // isMqttConnected = true // nuova aggiunta
+                                ultimoMessaggioInviato = "Inviato alla Dashboard Web: X=$simboloWeb",
+                                movementElevator = testSmartwatch
                             )
                         }
                     }

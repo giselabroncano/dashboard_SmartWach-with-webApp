@@ -52,7 +52,7 @@ class MainActivity : ComponentActivity() {
         val sensorManager = MySensorManager(this)
 
         // IP TEST
-        val mqttManager = MqttManager("10.0.2.2")
+        val mqttManager = MqttManager("10.0.2.2") //  TODO : modificarlo quando viene inserito nello smartwatch con IP reale del mio PC (192.168.1.4)
 
         // Creiamo il ViewModel passando i manager
         val viewModel = WatchViewModel(sensorManager, mqttManager)
@@ -68,7 +68,7 @@ class MainActivity : ComponentActivity() {
 
    @Composable
    fun MovementGraph(points: List<Float>){
-        // Canvas è una lavagna su cui disegnamo a mano libera
+
        Canvas(modifier = Modifier.fillMaxWidth().height(40.dp).padding(horizontal = 10.dp)){
            if(points.size < 2) return@Canvas
 
@@ -83,7 +83,7 @@ class MainActivity : ComponentActivity() {
                if (i == 0) path.moveTo(x,y) else path.lineTo(x, y)
            }
 
-           // disegniamo la linea color Ciano
+           // disegniamo la linea
            drawPath(path, Color.Cyan, style = Stroke(width = 2f))
 
        }
@@ -131,7 +131,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
-            //------ STATO BROKET MOSQUITTO ------
+            //------ CONNESSIONE BROKET MOSQUITTO ------
 
             item {
 
@@ -141,7 +141,7 @@ class MainActivity : ComponentActivity() {
                     Box(modifier = Modifier.size(8.dp).background(colorIndicator, CircleShape))
                     Spacer(modifier = Modifier.width(5.dp))
                     Text(
-                        text = if (state.isMqttConnected) "Broker: ON" else "Broker: OFF",
+                        text = if (state.isMqttConnected) "Connessione: ON" else "Connessione: OFF",
                         style = MaterialTheme.typography.caption3
                     )
                 }
