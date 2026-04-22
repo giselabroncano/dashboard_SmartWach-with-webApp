@@ -37,11 +37,11 @@ Per compilare, eseguire e testare correttamente l'applicazione, assicurarsi di a
 - **Indirizzo IP**:  Se si usa emulatore di Android Studio, il broker deve essere puntato all'indirizzo 10.0.2.2 (che rappresenta il *localhost* del PC ospite dall'interno dell'emulatore).Se si usa un dispositivo reale, usare l'IP locale del PC (es. 192.168.1.XX).
 - **Configurazione Mosquitto**: il file *mosquitto.conf* deve includere il supporto WebSockets per la Dashboard:
 
-*listener 1883
-allow_anonymous true
+               *listener 1883*
+               *allow_anonymous true*
 
-listener 9001
-protocol websockets*
+               *listener 9001*
+               *protocol websockets*
 
 
 ## Guida all'avvio 
@@ -49,7 +49,7 @@ protocol websockets*
 Eseguire questi passaggi per mettere in funzione la pipeline di monitoraggio:
 
 1. **Configurare il broker**:  Avviare Mosquitto assicurandoti che la porta 9001 sia attiva per i WebSockets.
-2. **Lanciare la Dashboard**: Apri il file index.html tramite un server web locale. Il badge indicherà "Broker: Connesso" quando il collegamento sarà stabilito.
+2. **Lanciare la Dashboard**: Aprire il file index.html tramite un server web locale. Il badge indicherà "Broker: Connesso" quando il collegamento sarà stabilito.
 4. **App & Test**:
      + Aprire il progetto app su Android Studio e avviare l'emulatore Wear Os.
      + Premere il pulsante START (Verde) sulla dashboard dell'orologio. Il pallino di stato conessione diventerà verde.
@@ -57,14 +57,15 @@ Eseguire questi passaggi per mettere in funzione la pipeline di monitoraggio:
   
 5. **Stop**: Premendo STOP (Rosso), lo smartwatch invierà il comando "OFF", resettando la Web Dashboard al suo stato iniziale prima di chiudere la connessione.
 
-## Formati dei dati (JSON)
+## Formati dei dati
 
-I messaggi inviati al broker seguono questa struttura:
+Per ottimizzare la banda e la velocità di risposta della Dashboard Web, il sistema invia stringhe di stato semplici:
 
-`{
-  "accX": 0.45,
-  "accY": -1.20,
-  "accZ": 9.81,
-  "stato": "In movimento"
-}`
+| Messaggio | Significato | Icona Web |
+|---|---|---|
+| SALUTO | Movimento braccio moderato | ✋ (Giallo) |
+| CORSA | Movimento braccio rapido | 🏃 (Rosso) |
+| RIPOSO | Braccio fermo / Stasi | 🟢 (Verde) |
+| OFF | Monitoraggio interrotto | 📡 (Grigio) |
+
 
