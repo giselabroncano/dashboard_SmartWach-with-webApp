@@ -1,20 +1,20 @@
 # Smartwatch Arm Monitoring Dashboard
 
 Questa applicazione Android (Wear OS) monitora i movimenti del braccio in tempo reale usando i sensori inerziali dello Smartwatch (accelerometro triassiale). 
-I dati vengono elaborati tramite una logica a soglie e trasmessi in formato JSON via MQTT a un broker Mosquitto per la visualizzazione e l'analisi esterna.
+I dati vengono elaborati,per il momento, tramite una logica a soglie e trasmessi via MQTT (broker Mosquitto) ad una Dashboard Web per la visualizzazione remota.
 
-**NOTA:** Il modello di classificazione dei movimenti non è ancora stato integrato nell'interfaccia dell'app. 
-          Al momento, l'app gestisce l'intera pipeline di estrazione, processamento locale e invio dati. 
+
+**NOTA:** Il modello di classificazione dei movimenti verrà integrato in futuro. Al momento, l'app gestisce la pipeline di estrazione, processamento locale e invio dei simboli di stato.
 
 
 ## ARCHITETTURA DEL SISTEMA
 
 La pipeline dei dati è strutturata come segue:
 
-+  **Smartwatch(Wear Os)**: Campionamento in tempo reale dell'accelerometro triassiale, gestione dello stato tramite Kotlin Flow e logica a soglie per il rilevamento del movimento.
-+  **Protocollo MQTT**: I dati vengono impacchettati in oggetti JSON e inviati al broker in modo asincrono per non impattare sulla fluidità della UI.
-+  **Mosquitto Broker**: Funge da hub centrale per lo smistamento dei messaggi sulla rete locale.
-+  **MQTT Explorer**: Usato come dashboard temporanea per visualizzare i flussi dati in tempo reale e strumento di monitoraggio e debug per validare la ricezione dei pacchetti.
++  **Smartwatch(Wear Os)**: Campionamento in tempo reale dell'accelerometro triassiale, gestione dello stato tramite Kotlin Flow e invio di stringhe identificative ("SALUTO", "CORSA", "RIPOSO", "OFF").
++  **Protocollo MQTT**: Trasmissione asincrona leggera basata su stringhe di testo per garantire la massima fluidità della UI.
++  **Mosquitto Broker**: Funge da hub centrale .Grazie al supporto WebSockets, permette la comunicazione diretta tra l'app Android e il browser.
++  **MQTT Explorer**: Web Dashboard: Interfaccia reattiva (HTML/JS) che traduce i messaggi ricevuti in simboli grafici e colori dinamici.
 
 
 ## PREREQUISITI
@@ -26,32 +26,36 @@ Per compilare, eseguire e testare correttamente l'applicazione, assicurarsi di a
 -  **Android Studio** (Jellyfish o versione superiore) con SDK Wear OS.
 -  **Java JDK 17** (Consigliato per la compatibilità con Gradle).
 -  **Emulatore Wear OS**: Creato tramite *Device Manager*.
+- **Web Server Locale**: Necessario per eseguire la Dashboard (es. estensione Live Server di VS Code o Python http.server).
 
 ### Servizi esterni ( Broker & Debug)
 
 -  **Mosquitto MQTT Broker**: Installato e configurato sul PC Locale (Porta di default: 1883).
--  **MQTT Explorer**: Strumento fondamentale  per la visualizzazione dei pacchetti JSON in tempo reale.
 
 ### Connettività e Rete
 
-- **Indirizzo IP**:  Se si usa emulatore di Android Studio, il broker deve essere puntato all'indirizzo 10.0.2.2 (che rappresenta il *localhost* del PC ospite dall'interno dell'emulatore).
-- **Configurazione Mosquitto**: il file *mosquitto.conf* deve permettere le connessioni esterne (*listener 1883 0.0.0.0 e allow_anonymous true*)
+- **Indirizzo IP**:  Se si usa emulatore di Android Studio, il broker deve essere puntato all'indirizzo 10.0.2.2 (che rappresenta il *localhost* del PC ospite dall'interno dell'emulatore).Se si usa un dispositivo reale, usare l'IP locale del PC (es. 192.168.1.XX).
+- **Configurazione Mosquitto**: il file *mosquitto.conf* deve includere il supporto WebSockets per la Dashboard:
+
+*listener 1883
+allow_anonymous true
+
+listener 9001
+protocol websockets*
 
 
 ## Guida all'avvio 
 
 Eseguire questi passaggi per mettere in funzione la pipeline di monitoraggio:
 
-1. **Configurare il broker**: Avvia il servizio Mosquitto sul PC. Assicursi che il firewall permetta il traffico sulla porta 1883.
-2. **Monitoraggio**: Aprire MQTT Explorer, connettersi a *localhost*: 1883  e rimanere in ascolto sul topic configurato (esempio: *test/sensori/braccio*)
-3. **App & Test**:
-
-     + Aprire il progetto su Android Studio e avviare l'emulatore Wear Os.
-     + Installare l'applicazione e premere il pulsante START (Verde) sulla dashboard dell'orologio.
-     + Usa il *Virtual Sensors* dell' emulatore (opzione *move*) per simulare il movimento del braccio: si vedra il grafico muoversi nella dashboard dello smartwatch e i dati apparire istantaneamente su MQTT Explorer.
+1. **Configurare il broker**:  Avviare Mosquitto assicurandoti che la porta 9001 sia attiva per i WebSockets.
+2. **Lanciare la Dashboard**: Apri il file index.html tramite un server web locale. Il badge indicherà "Broker: Connesso" quando il collegamento sarà stabilito.
+4. **App & Test**:
+     + Aprire il progetto app su Android Studio e avviare l'emulatore Wear Os.
+     + Premere il pulsante START (Verde) sulla dashboard dell'orologio. Il pallino di stato conessione diventerà verde.
+     + **Simulare il movimento**: la Web Dashboard cambierà icona istantaneamente (es. apparirà la mano per il "SALUTO" o l'omino per la "CORSA") quando al usare il *Virtual Sensors* dell' emulatore (opzione *move*)  per simulare il movimento del braccio. Oltre al cambio del icona nella web App si può vedere il grafico muoversi nella dashboard dello smartwatch. 
   
-4. **Stop**: Premere il pulsante STOP (Rosso) per interrompere il monitoraggio e la trasmissione.   
-  
+5. **Stop**: Premendo STOP (Rosso), lo smartwatch invierà il comando "OFF", resettando la Web Dashboard al suo stato iniziale prima di chiudere la connessione.
 
 ## Formati dei dati (JSON)
 
