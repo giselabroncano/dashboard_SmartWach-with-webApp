@@ -12,6 +12,7 @@ package com.example.dashboardt_prova01.presentation
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -86,7 +87,7 @@ private var isGestoInCorso = false
 
             sensorManager.getMovementFlow().collect { coordinate ->
 
-                if(_uiState.value.isMonitoringActive) {
+                 if(_uiState.value.isMonitoringActive) {
 
                     // coordinate delle tre assi
                     val x = coordinate[0]
@@ -94,17 +95,16 @@ private var isGestoInCorso = false
                     val z = coordinate[2]
                     val adesso = System.currentTimeMillis()
 
-                    Log.d(
-                        "ACC_VALUES",
-                        "x=$x y=$y"
-                    )
+
                     // RICONOSCIMENTO DEI GESTI
 
                     if (!isGestoInCorso) {
+
                         val sogliaX = 6f
                         val sogliaY = 3f
                         var simboloWeb = "RIPOSO"
                         var testSmartwatch = "Fermo"
+                        var action = "NONE"
 
                         // ANALIZZI DI QUALE VARIABILE HA SUPERATO LA SOGLIA PER DETERMINARE LA DIREZIONE
                         // CON ASSE DOMINANTE
@@ -115,38 +115,35 @@ private var isGestoInCorso = false
                             if (x > sogliaX) {
                                 simboloWeb = "DESTRA"
                                 testSmartwatch = "Gesto Destra"
+                                action = "SLIDE_SUCCESSIVA"
                             }
 
                             if (x < -sogliaX) {
                                 simboloWeb = "SINISTRA"
                                 testSmartwatch = "Gesto Sinistra"
+                                action = "SLIDE_PRECEDENTE"
                             }
                         }else{
 
                             if(y > sogliaY ) {
                                 simboloWeb = "SU"
                                 testSmartwatch = "Gesto Su"
+                                action = "ZOOM_IN"
                             }
 
                             if(y < -sogliaY ){
                                 simboloWeb = "GIU"
                                 testSmartwatch = "Gesto Giù"
+                                action = "ZOOM_OUT"
                             }
                         }
+
 
                         // RILEVAMENTO DI UN GESTO DIVERSO DA RIPOSO
                         if (simboloWeb != "RIPOSO") {
 
-                            Log.d(
-                                "GESTURE",
-                                "Riconosciuto: $simboloWeb x =$x y =$y"
-                            )
                             isGestoInCorso = true // congelamento sensori.
 
-                            Log.d(
-                                "GESTURE_LOCK",
-                                "BLOCCATO- ${System.currentTimeMillis()}"
-                            )
 
                             // AGGIORNIAMO INTERFACCIA DELLO SMARTWATCH
 
@@ -167,7 +164,8 @@ private var isGestoInCorso = false
 
                             // TRASMISSIONE ALLA WEB DASHBOARD
                             // Inviamo il comando solo se è un gesto valido e se sono passati almeno 800ms dall'ultimo
-                            if (_uiState.value.isMqttConnected && (adesso - ultimoInvio > 1000)) {
+                            if (_uiState.value.isMqttConnected ) { //&& (adesso - ultimoInvio > 1000)
+
                                 val topic = "test/sensori/braccio"
                                 mqttManager.publish(topic, simboloWeb)
                                 ultimoInvio = adesso
@@ -181,23 +179,30 @@ private var isGestoInCorso = false
 
                                 //TIMER DI SBLOCCO: gesto visibile per 500ms
                                 // Dopo Resettiamo sia la web app che i sensori locali
-                                //viewModelScope.launch {
-                                //kotlinx.coroutines.delay(1000)
-                                //if (_uiState.value.isMqttConnected && _uiState.value.isMonitoringActive) {
-                                //    mqttManager.publish(topic, "RIPOSO")
-                                // }
-                                //  isGestoInCorso = false // sblocca i sensori per il prossimo gesto
-                                //}
+                                viewModelScope.launch {
+
+
+                                    val tempoRiposo = when(simboloWeb){
+
+                                        "SU", "GIU" -> 1200L
+                                        "DESTRA", "SINISTRA" -> 800L
+
+                                        else -> 1000L
+                                    }
+
+                                    delay(tempoRiposo)
+
+
+
+
+                                    if (_uiState.value.isMqttConnected && _uiState.value.isMonitoringActive) {
+                                        mqttManager.publish(topic, "RIPOSO")
+                                     }
+                                  isGestoInCorso = false // sblocca i sensori per il prossimo gesto
+
+                                }
                             }
-                            // Sblocchiamo
-                            viewModelScope.launch {
-                                kotlinx.coroutines.delay(1000)
-                                isGestoInCorso = false
-                                Log.d(
-                                    "GESTURE_LOCK",
-                                    "SBLOCCATO- ${System.currentTimeMillis()}"
-                                )
-                            }
+
                         }
 
                     }else{

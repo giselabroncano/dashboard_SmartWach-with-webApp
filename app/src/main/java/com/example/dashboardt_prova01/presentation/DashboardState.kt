@@ -17,8 +17,8 @@ data class DashboardState(
 
     val listaMovimenti: List<Float> = emptyList(),
 
-    // Simboli del modello Bicocca (stato riconoscimento)
-    // SARà AGGIORNATO DAL MODELLO BICOCCA
+    // Simboli del modello (stato riconoscimento)
+    // SARà AGGIORNATO DAL MODELLO
 
     val movementElevator: String = "Fermo",
 
