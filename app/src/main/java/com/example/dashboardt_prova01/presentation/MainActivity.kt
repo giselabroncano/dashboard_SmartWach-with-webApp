@@ -1,6 +1,7 @@
 package com.example.dashboardt_prova01.presentation
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -56,6 +57,12 @@ class MainActivity : ComponentActivity() {
 
         // Creiamo il ViewModel passando i manager
         val viewModel = WatchViewModel(sensorManager, mqttManager)
+
+        // mi serve per implementare il modello
+        val classifier = GestureClassifier(this)
+        Log.d(
+            "ONNX", classifier.predict(9f, 0f, 0f)
+        )
 
         //Montiamo la UI
         setContent {
