@@ -20,10 +20,6 @@ class GestureClassifier(context: Context) {
             session = env.createSession(bytes)
 
             //Log.d("ONNX", "File letto correttamente. Byte = ${bytes.size}")
-            //Log.d("ONNX", "Input: ${session.inputNames}")
-            //Log.d("ONNX", "Output: ${session.outputNames}")
-            //Log.d("ONNX", "Info input: ${session.inputInfo}")
-            //Log.d("ONNX", "Info output: ${session.outputInfo}")
 
 
 
