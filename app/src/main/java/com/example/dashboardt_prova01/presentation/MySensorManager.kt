@@ -1,5 +1,3 @@
-package com.example.dashboardt_prova01.presentation
-
 /**
  *  Questa classe è il "ponte" tra hardware dello smartwatch e il codice.
  *  Implementiamo qui il SensorEventListener per ricevere i dati ogni volta
@@ -8,12 +6,13 @@ package com.example.dashboardt_prova01.presentation
  *
  * */
 
-
+package com.example.dashboardt_prova01.presentation
 import android.content.Context
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.util.Log
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -58,6 +57,18 @@ class MySensorManager(context: Context) {
 
          override fun onSensorChanged(event: SensorEvent?) {
              event?.let {
+
+                 Log.d(
+                     "RAW_SENSOR",
+                     "RAW x=${it.values[0]} y=${it.values[1]} z=${it.values[2]}"
+                 )
+
+                 Log.d(
+                     "RAW_SENSOR",
+                     "t=${System.currentTimeMillis()} x=${it.values[0]} y=${it.values[1]} z=${it.values[2]}"
+                 )
+
+
                  if(it.sensor.type == Sensor.TYPE_ACCELEROMETER){
                      //Inviamo i 3 valori [X,Y,Z] nel Flow
                      trySend(it.values.copyOf())

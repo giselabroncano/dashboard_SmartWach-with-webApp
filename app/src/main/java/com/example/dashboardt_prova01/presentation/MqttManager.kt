@@ -1,5 +1,12 @@
-package com.example.dashboardt_prova01.presentation
+/**
+ * Classe progettata per la connessione con il broker mosquitto (MQTT)
+ *
+ * */
 
+
+
+package com.example.dashboardt_prova01.presentation
+import android.util.Log
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client
 import java.util.UUID
@@ -33,11 +40,27 @@ class MqttManager( private val brokerIp: String) {
 
     fun publish(topic:String, payload: String){
         client ?.let { mqttClient ->
+
             if(mqttClient.state.isConnected){
-                mqttClient.publishWith()
-                    .topic(topic)
-                    .payload(payload.toByteArray())
-                    .send()
+
+               try {
+                   mqttClient.publishWith()
+                       .topic(topic)
+                       .payload(payload.toByteArray())
+                       .send()
+
+                   Log.d(
+                       "MQTT_DEBUG",
+                       "PUBBLICATO -> $payload"
+                   )
+               } catch (e:Exception){
+
+                   Log.e(
+                       "MQTT_DEBUG",
+                       "ERRORE PUBLISH",
+                       e
+                   )
+               }
             }
         }
 

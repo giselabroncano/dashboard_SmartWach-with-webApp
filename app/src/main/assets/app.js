@@ -28,9 +28,9 @@ client.onConnectionLost = function(responseObject){
 
 client.onMessageArrived = function(message){
 
-    const payload = message.payloadString; // testo ricevuto (?)
+    const payload = message.payloadString; // rICEVE: "SINISTRA", "DESTRA", "SU", "GIU"
 
-    console.log ("Messaggio ricevuto: "+payload);
+    console.log ("MQTT ARRIVATO"+payload);
 
    // Recupero elementi HTML da modificare
    
@@ -41,27 +41,54 @@ client.onMessageArrived = function(message){
 
    switch (payload){
 
-    case "SALUTO":
-        icona.innerText = "waving_hand"; // nome della incona google
-        icona.style.color = "#FFD700";   // Oro/Giallo
-            testo.innerText = "L'utente sta salutando";
+    case "DESTRA":
+
+        console.log("ESEGUO DESTRA");
+
+        icona.innerText = "arrow_forward";
+        testo.innerText = "Slide successiva (Avanti)";
+        document.body.style.backgroundColor = "red";
+        slideSuccessiva(); // Simula tasto "Freccia Destra" o "Space" per andare avanti
             break;
         
-        case "CORSA":
-            icona.innerText = "directions_run";
-            icona.style.color = "#FF4500";   // Arancione/Rosso
-            testo.innerText = "Movimento rapido!";
+    case "SINISTRA":
+
+            console.log("ESEGUO SINISTRA");
+
+            icona.innerText = "arrow_back"; // nome della incona google
+            testo.innerText = "Slide Precedente (Indietro)";
+            document.body.style.backgroundColor = "blue";
+            slidePrecedente(); // Simula tasto " Freccia Sinistra" per andare indietro
+            break;
+        
+    case "SU":
+
+            console.log("ESEGUO SU");
+
+            icona.innerText = "zoom_in";
+            testo.innerText = "Zoom Avanti";
+            document.body.style.backgroundColor = "green";
+            simulaZoom(true); // Simula "Ctrl +" per lo zoom nei browser 
             break;
 
+    case "GIU":
+
+            console.log("ESEGUO GIU");
+
+            icona.innerText = "zoom_out";
+            testo.innerText = "Zoom Indietro";
+            document.body.style.backgroundColor = "yellow";
+            simulaZoom(false);
+            break;
+            
         case "RIPOSO":
-            icona.innerText = "accessibility_new";
-            icona.style.color = "#2E8B57";   // Verde
-            testo.innerText = "Braccio a riposo";
+            icona.innerText = "sensors";
+            testo.innerText = "In attesa di gesti...";
             break;
 
         case "OFF":
             icona.innerText = "sensors";
-            icona.style.color = "#555";
+           // icona.style.color = "#555";
             testo.innerText = " In attesa dello smartwatch...";
             break;
 
@@ -69,10 +96,71 @@ client.onMessageArrived = function(message){
             icona.innerText = "help_outline";
             testo.innerText = "Stato: " + payload;   
 
-    
    }
 
 };
+
+
+// GESTIONE DELLE SLIDE
+
+const slides = [
+    "prova_img/slide1.png",
+    "prova_img/slide2.png",
+    "prova_img/slide3.png",
+    "prova_img/slide4.png"
+];
+
+let slideCorrente = 0;
+
+
+
+// FUNZIONE PER GESTIRE LO ZOOM DIRECTAMENTE SULLA PAGINA WEB
+
+let zoomAttuale = 1;
+
+function simulaZoom(avanti){
+
+    const slideViewer = document.getElementById("slide-viewer");
+    if (avanti) zoomAttuale += 0.1;
+    else zoomAttuale = Math.max(0.5, zoomAttuale - 0.1); // non scende sotto il 50%
+    slideViewer.style.transform = `scale(${zoomAttuale})`;
+    slideViewer.style.transformOrigin = "center center";
+   
+}    
+
+function aggiornaContatore() {
+    document.getElementById("slide-counter").innerText =
+       `Slide ${slideCorrente + 1} / ${slides.length}`;
+
+}
+
+function slideSuccessiva(){
+
+    if(slideCorrente < slides.length - 1){
+
+        slideCorrente++;
+
+        document.getElementById("slide-viewer").src =
+            slides[slideCorrente];
+
+        aggiornaContatore();
+    }
+}
+
+function slidePrecedente(){
+
+    if(slideCorrente > 0){
+
+        slideCorrente--;
+
+        document.getElementById("slide-viewer").src =
+            slides[slideCorrente];
+        
+            aggiornaContatore();
+
+    }
+}
+
 
 // CONNESSIONE AL BROKER
 
@@ -96,7 +184,9 @@ client.onMessageArrived = function(message){
 
     };
 
+     aggiornaContatore();
 //  AVVIO EFFETIVO DELLA CONNESSIONE
 
     client.connect(options);
 
+    

@@ -8,11 +8,13 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; background-color: #e9ecef; }
-        .container { margin-top: 100px; background: white; display: inline-block; padding: 50px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        #icona-movimento { font-size: 120px; color: #555; transition: 0.3s; }
-        .status-badge { padding: 5px 10px; border-radius: 5px; font-size: 12px; }
-        .connesso { background: #d4edda; color: #155724; }
-        .disconnesso { background: #f8d7da; color: #721c24; }
+         .container { margin-top: 50px; background: white; display: inline-block; padding: 40px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 90%; max-width: 850px; }
+         #icona-movimento { font-size: 120px; color: #555; transition: 0.3s; }
+         .status-badge { padding: 5px 10px; border-radius: 5px; font-size: 12px; display: inline-block; margin-top: 20px; }
+         .connesso { background: #d4edda; color: #155724; }
+         .disconnesso { background: #f8d7da; color: #721c24; }
+         /* Stile per il contenitore delle slide */
+         #slide-container { width: 100%; margin-top: 30px; }
     </style>
 </head>
 <body>
@@ -20,16 +22,46 @@
         <!-- Indicatore connessione al Broker -->
         <div id="label-connessione" class="status-badge disconnesso">Broker: Disconnesso</div>
         
-        <h1>Rilevamento Braccio</h1>
+        <h1>Controllo Presentazione Gestuale</h1>
         
         <!-- Qui cambierà il simbolo -->
         <span id="icona-movimento" class="material-icons">sensors</span>
         
         <!-- Qui cambierà il testo -->
         <h2 id="testo-movimento">In attesa dello smartwatch...</h2>
+
+        <p id="slide-counter">Slide 1 / 4</p>
+
+        <hr style="margin: 25px 0; border: 0; border-top: 1px solid #ccc;">
+
+        <!-- CONTENITORE PRESENTAZIONE -->
+
+        <div id="slide-container">
+            <img
+                    id = "slide-viewer"
+                    src= "prova_img/slide1.png"
+                    alt = "Presentazione"
+                    style = "
+                        width: 100%;
+                        max-height: 500px;
+                        object-fit: contain;
+                        border: 2px solid #333;
+                        border-radius: 8px;
+                        background: white;
+                        transition: transform 0.3s;
+
+                            "
+
+            >
+
+
+        </div>
+
+
+
     </div>
 
-    <!-- Colleghiamo il file JavaScript che scriveremo tra poco -->
+    <!-- Colleghiamo il file JavaScript -->
     <script src="app.js"></script>
 </body>
 </html>
